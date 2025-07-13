@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smart Queue Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-gray-50 to-blue-100 text-gray-800 font-sans min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="flex justify-between items-center px-6 py-4 bg-white shadow-md sticky top-0 z-50">
+    <div class="flex items-center">
+      <div class="bg-orange-500 text-white font-bold px-3 py-1 rounded mr-3 animate-pulse">🛒 Walmart</div>
+      <span class="text-2xl font-bold text-blue-900 tracking-wide">Smart Queue Manager</span>
+    </div>
+    <div class="space-x-3">
+      <button onclick="scrollToSection('howItWorks')" class="bg-blue-100 text-blue-800 px-4 py-2 rounded hover:bg-blue-200 transition">How It Works</button>
+      <button onclick="toggleDashboard()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">Analytics</button>
+      <button onclick="toggleAlerts()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition">Alerts</button>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="text-center py-20 px-4 bg-white shadow-inner">
+    <h1 class="text-5xl font-extrabold text-blue-800 mb-4">Optimize Queues with AI</h1>
+    <p class="text-lg text-gray-600 max-w-3xl mx-auto mb-6">Real-time cart detection from CCTV + smart alerts = shorter lines, happier customers, and smoother store operations.</p>
+    <div class="space-x-4">
+      <button onclick="toggleDashboard()" class="bg-orange-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-orange-600 transition">📊 Launch Dashboard</button>
+      <button onclick="toggleAlerts()" class="bg-gray-200 text-gray-800 px-6 py-3 rounded-full font-semibold hover:bg-gray-300 transition">🚨 Check Alerts</button>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <!-- How It Works Section -->
+<section id="howItWorks" class="bg-blue-50 py-20 px-6">
+  <h2 class="text-4xl font-bold text-center text-blue-900 mb-12">🛠️ How It Works — Behind the Scenes</h2>
+
+  <div class="max-w-5xl mx-auto space-y-8 text-gray-700 leading-relaxed text-lg">
+
+    <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+      <h3 class="text-xl font-bold text-blue-800 mb-2">1️⃣ Upload a CCTV Video</h3>
+      <p>
+        The system begins by uploading a CCTV surveillance video. We extract the <strong>first frame</strong> from this video using OpenCV.
+        This frame acts as the base image for defining queue zones where customer trolleys typically line up.
+      </p>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+      <h3 class="text-xl font-bold text-blue-800 mb-2">2️⃣ Draw Queue Zones on Frame</h3>
+      <p>
+        Using a separate script <code>draw_zones.py</code>, you click and draw rectangular zones over the uploaded frame.
+        Each zone represents a specific queue (e.g., billing line 1, 2, etc). These coordinates are stored in a <strong>zones.json</strong> file
+        tied to the uploaded video.
+      </p>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+      <h3 class="text-xl font-bold text-blue-800 mb-2">3️⃣ Cart Detection using YOLOv8</h3>
+      <p>
+        Once zones are defined, the system uses a pre-trained <strong>YOLOv8 model</strong> to detect objects in each video frame.
+        It filters detections with the class name <code>"trolley"</code> or <code>"cart"</code> and maps each detected cart to its corresponding zone.
+        This is done using the <strong>IoU (Intersection over Union)</strong> between the bounding box and each zone.
+      </p>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+      <h3 class="text-xl font-bold text-blue-800 mb-2">4️⃣ Real-Time Dashboard</h3>
+      <p>
+        The cart counts for each zone are calculated in real-time and streamed using Flask’s <code>/video-stream</code> route.
+        The frontend dashboard fetches this data and displays live video frames and updated cart counts every 2 seconds.
+      </p>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+      <h3 class="text-xl font-bold text-blue-800 mb-2">5️⃣ Alert Algorithm</h3>
+      <p>
+        We use a simple yet effective logic to trigger alerts: if the cart count in any zone exceeds
+        <strong>(average + 2)</strong>, that zone is flagged as overcrowded. This threshold helps balance sensitivity and avoid false alarms.
+        Alerts are displayed dynamically and updated every 5 seconds.
+      </p>
+    </div>
+
+    <div class="bg-white p-6 rounded-xl shadow hover:shadow-lg transition">
+      <h3 class="text-xl font-bold text-blue-800 mb-2">6️⃣ Test Scenarios with Fake Data</h3>
+      <p>
+        A dropdown menu lets you test the alert logic with <strong>fake videos</strong> like <code>FakeVid1.mp4</code>.
+        Each video is preloaded with synthetic cart counts to simulate different queue situations and validate the alert algorithm.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+
+  <!-- ORIGINAL CONTENT STARTS HERE -->
+  <!-- Keep your existing code starting from Dashboard, Alerts, Upload UI, and Scripts -->
+
+
+  <!-- Analytics Dashboard -->
+  <div id="dashboard" class="hidden mt-6 bg-white p-6 rounded-lg shadow border w-full max-w-3xl mx-auto">
+    <h3 class="text-xl font-semibold text-blue-700 mb-4 text-center">📍 Real-Time Queue Analytics</h3>
+
+    <label for="videoSelect" class="block text-gray-700 mb-2">Select Video:</label>
+    <select id="videoSelect" class="w-full px-4 py-2 border rounded mb-4">
+      <option value="testvid.mp4">testvid.mp4</option>
+      <option value="QueueVid1.mp4">QueueVid1.mp4</option>
+      <option value="testvid1.mp4">testvid1.mp4</option>
+    </select>
+
+    <div class="mt-4">
+      <h4 class="text-lg font-semibold mb-2">🎬 Live Cart Detection Preview</h4>
+      <img id="liveVideo" class="w-full rounded-lg border shadow" src="" alt="Live Video Stream" />
+    </div>
+
+    <h2 id="liveCartCount" class="text-center text-xl font-semibold text-blue-700 mt-4">
+      🛒 Carts Detected: ...
+    </h2>
+  </div>
+
+  <!-- 🚨 Alert System Section -->
+  <!-- 🚨 Alert System Section -->
+<div id="alertSection" class="hidden mt-6 bg-red-50 p-6 rounded-lg shadow border w-full max-w-3xl mx-auto">
+  <h3 class="text-xl font-semibold text-red-700 mb-4 text-center">🚨 Real-Time Queue Alerts</h3>
+  
+  <label for="alertVideoSelect" class="block text-gray-700 mb-2">Choose Fake Test Scenario:</label>
+  <select id="alertVideoSelect" class="w-full px-4 py-2 border rounded mb-4">
+    <option value="FakeVid1.mp4">FakeVid1.mp4</option>
+    <option value="FakeVid2.mp4">FakeVid2.mp4</option>
+    <option value="FakeVid3.mp4">FakeVid3.mp4</option>
+  </select>
+
+  <div id="alertBox" class="text-lg text-red-700 text-center font-medium">
+    Loading alerts...
+  </div>
+</div>
+
+
+  <!-- Main Content -->
+  <div class="w-full mt-10 bg-white p-8 rounded-xl shadow-lg text-center">
+    <h2 class="text-3xl font-bold mb-4">📊 Smart Queue Management</h2>
+    <p class="text-gray-600 mb-6">
+      AI-powered CCTV counts real-time queue lengths and alerts staff to open new tills when queues exceed 6 people.
+    </p>
+
+    <ul class="text-left text-green-600 font-medium mb-8 px-4">
+      <li>✅ Real-time queue monitoring</li>
+      <li>✅ Automated staff alerts</li>
+      <li>✅ Improved customer experience</li>
+      <li>✅ Reduced wait times</li>
+    </ul>
+
+    <!-- Upload Image Section -->
+    <div class="mb-10">
+      <h3 class="text-xl font-semibold text-gray-800 mb-3">🖼️ Upload Snapshot for Cart Detection</h3>
+      <input type="file" id="imageInput" accept="image/*" class="mb-4" />
+      <br>
+      <button onclick="uploadImage()" class="bg-orange-500 text-white px-6 py-2 rounded font-semibold hover:bg-orange-600 transition">
+        Detect Carts
+      </button>
+      <h3 id="cartCount" class="text-2xl font-bold text-blue-700 mt-4">🛒 Carts in Queue: ...</h3>
+      <img id="outputImage" src="" alt="Detection Output" class="mx-auto rounded-lg shadow-md max-w-full mt-4 border" />
+    </div>
+
+    <!-- Upload Video Section -->
+    <div class="mt-10 border-t pt-10">
+      <h3 class="text-xl font-semibold text-gray-800 mb-3">🎥 Upload Video to Extract Frame</h3>
+      <input type="file" id="videoInput" accept="video/*" class="mb-4" />
+      <br>
+      <button onclick="uploadVideo()" class="bg-blue-600 text-white px-6 py-2 rounded font-semibold hover:bg-blue-700 transition">
+        Upload Video
+      </button>
+      <p class="text-sm text-gray-500 mt-2">This will extract the first frame and show it below for drawing zones.</p>
+      <img id="videoFrame" src="" alt="Video Snapshot Frame" class="mt-6 rounded-lg shadow-md max-w-full border hidden" />
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script>
+    async function uploadImage() {
+      const imageInput = document.getElementById("imageInput");
+      const file = imageInput.files[0];
+      if (!file) return alert("❗ Please select an image first.");
+
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await fetch("http://127.0.0.1:5000/detect", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+      if (result.error) {
+        document.getElementById("cartCount").innerText = "❌ Error: " + result.error;
+      } else {
+        document.getElementById("cartCount").innerText = `🛒 Carts in Queue: ${result.cart_count}`;
+        document.getElementById("outputImage").src = result.image_path + "?t=" + new Date().getTime();
+      }
+    }
+
+    async function uploadVideo() {
+      const videoInput = document.getElementById("videoInput");
+      const file = videoInput.files[0];
+      if (!file) return alert("❗ Please select a video first.");
+
+      const formData = new FormData();
+      formData.append("video", file);
+
+      const response = await fetch("http://127.0.0.1:5000/upload_video", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await response.json();
+      if (result.frame_path) {
+        document.getElementById("videoFrame").classList.remove("hidden");
+        document.getElementById("videoFrame").src = result.frame_path + "?t=" + new Date().getTime();
+        alert("✅ Frame extracted! Now draw zones using `draw_zones.py`.");
+      } else {
+        alert("❌ Upload failed.");
+      }
+    }
+
+    async function fetchLiveCartCount() {
+      const video = document.getElementById("videoSelect").value;
+      try {
+        const res = await fetch(`http://127.0.0.1:5000/realtime-analytics?video=${video}`);
+        const data = await res.json();
+        let total = 0;
+        for (const val of Object.values(data)) {
+          total += val;
+        }
+        document.getElementById("liveCartCount").innerText = `🛒 Carts Detected: ${total}`;
+      } catch (err) {
+        document.getElementById("liveCartCount").innerText = "❌ Failed to fetch count";
+      }
+    }
+
+    let currentStream = null;
+    let countInterval = null;
+    let alertInterval = null;
+
+    function toggleDashboard() {
+      const dashboard = document.getElementById("dashboard");
+      const alertSection = document.getElementById("alertSection");
+      alertSection.classList.add("hidden");
+
+      const video = document.getElementById("videoSelect").value;
+      const liveVideo = document.getElementById("liveVideo");
+
+      if (dashboard.classList.contains("hidden")) {
+        dashboard.classList.remove("hidden");
+        liveVideo.src = `http://127.0.0.1:5000/video-stream/${video}`;
+        currentStream = video;
+        fetchLiveCartCount();
+        countInterval = setInterval(fetchLiveCartCount, 2000);
+      } else {
+        dashboard.classList.add("hidden");
+        liveVideo.src = "";
+        clearInterval(countInterval);
+        document.getElementById("liveCartCount").innerText = "🛒 Carts Detected: ...";
+        currentStream = null;
+      }
+    }
+
+    function toggleAlerts() {
+      const alertSection = document.getElementById("alertSection");
+      const dashboard = document.getElementById("dashboard");
+      dashboard.classList.add("hidden");
+
+      if (alertSection.classList.contains("hidden")) {
+        alertSection.classList.remove("hidden");
+        fetchAlerts();
+        alertInterval = setInterval(fetchAlerts, 5000);
+      } else {
+        alertSection.classList.add("hidden");
+        clearInterval(alertInterval);
+      }
+    }
+
+    async function fetchAlerts() {
+  const video = document.getElementById("alertVideoSelect").value; // 👈 Use alert dropdown now
+  const box = document.getElementById("alertBox");
+
+  try {
+    const res = await fetch(`http://127.0.0.1:5000/alerts?video=${video}`);
+    const data = await res.json();
+
+    if (data.alert && Array.isArray(data.alert)) {
+      box.innerHTML = data.alert.map(msg => `<div>${msg}</div>`).join("");
+    } else {
+      box.innerHTML = "❌ Failed to load alerts.";
+    }
+  } catch (err) {
+    box.innerHTML = "❌ Error fetching alerts.";
+  }
+}
+document.getElementById("alertVideoSelect").addEventListener("change", () => {
+  fetchAlerts();
+});
+
+
+    document.getElementById("videoSelect").addEventListener("change", () => {
+      const video = document.getElementById("videoSelect").value;
+      const liveVideo = document.getElementById("liveVideo");
+
+      if (currentStream) {
+        liveVideo.src = `http://127.0.0.1:5000/video-stream/${video}`;
+        currentStream = video;
+        fetchLiveCartCount();
+      }
+
+      fetchAlerts(); // Also refresh alerts on change
+    });
+
+    // Optional: Initial fetch on page load
+    fetchAlerts();
+  </script>
+</body>
+</html>
