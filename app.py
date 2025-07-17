@@ -14,7 +14,7 @@ os.makedirs("uploads", exist_ok=True)
 os.makedirs("static", exist_ok=True)
 os.makedirs("zones", exist_ok=True)
 
-# ✅ Shared state for real-time counts
+# Shared state for real-time counts
 latest_counts = {}
 count_lock = Lock()
 
