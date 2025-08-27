@@ -184,7 +184,7 @@ def alerts():
 
         return jsonify({"alert": alerts})
 
-    except Exception as e: 
+    except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
